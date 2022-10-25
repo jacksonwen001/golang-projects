@@ -102,5 +102,5 @@ func main() {
 	// loop()
 	// userInput()
 	// flagParse()
-	logInfo()
+	// logInfo()
 }
