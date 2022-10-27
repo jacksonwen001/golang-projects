@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
+
 // 处理函数，用于接收请求和发送结果的函数
 func home(w http.ResponseWriter, req *http.Request) {
 	if (req.URL.Path != "/") {
@@ -14,7 +17,13 @@ func home(w http.ResponseWriter, req *http.Request) {
 }
 
 func view(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("view"))
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil || id < 1 {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+	}
+
+	// w.Write([]byte("view"))
+	fmt.Fprintf(w, "view %d....\n", id)
 }
 
 func create(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +31,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 	if (r.Method != http.MethodPost) {
 		w.Header().Set("Allow", "POST")
 		// 可以直接返回错误
-		http.Error(w, "Method Not Allow", 405)
+		http.Error(w, "Method Not Allow", http.StatusMethodNotAllowed)
 	}
 	w.Write([]byte("create"))
 }
