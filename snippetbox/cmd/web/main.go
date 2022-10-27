@@ -1,19 +1,24 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
-	"database/sql"
+
 	_ "github.com/go-sql-driver/mysql"
+	"snippetbox.jackson.net/internal/models"
 )
 
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
+	snippet  *models.SnippetModel
 }
 
 func main() {
+	db, err := openDB("root:root@/snippetbox?parseTime=true") // "root:root@tcp(localhost:3306)/snippetbox?parseTime=true"
+
 	// 路由的作用
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -22,6 +27,7 @@ func main() {
 	app := &application{
 		errorLog: errLog,
 		infoLog:  infoLog,
+		snippet:  &models.SnippetModel{DB: db},
 	}
 
 	// 启动服务器
@@ -30,7 +36,6 @@ func main() {
 		ErrorLog: errLog,
 		Handler:  app.routes(),
 	}
-	db, err := openDB("root:root@/snippetbox?parseTime=true") // "root:root@tcp(localhost:3306)/snippetbox?parseTime=true"
 	if err != nil {
 		errLog.Fatal(err)
 	}
@@ -55,4 +60,3 @@ func openDB(s string) (*sql.DB, error) {
 	}
 	return db, nil
 }
-
