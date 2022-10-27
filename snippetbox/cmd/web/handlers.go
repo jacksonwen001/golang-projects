@@ -16,21 +16,19 @@ func (app *application) home(w http.ResponseWriter, req *http.Request) {
 	files := []string {"./ui/html/base.tmpl", "./ui/html/partials/nav.tmpl", "./ui/html/pages/home.tmpl"}
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		app.errorLog.Print(err.Error())
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		app.serverError(w, err)
 	}
 
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
-		app.errorLog.Panic(err.Error())
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		app.serverError(w, err)
 	}
 }
 
 func (app *application) view(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
 	// w.Write([]byte("view"))

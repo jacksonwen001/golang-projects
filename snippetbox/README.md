@@ -12,3 +12,4 @@ inside the parent of the internal directory. In our case, this means that any pa
 
 > http 定义了 ServeHTTP(w http.ResponseWriter, r *http.Request) 所以任何对象只要实现这个方法即可 `mux.Handle("/", &home{})`
 > log.Fatal() 输出 message 并执行 os.Exit(1)
+
