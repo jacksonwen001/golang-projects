@@ -11,7 +11,6 @@ func main() {
 	mux := http.NewServeMux()
 	fileServce := http.FileServer(http.Dir("./ui/static"))
 
-
 	// 注册路由 
 	mux.HandleFunc("/", home)
 	mux.HandleFunc("/snippet/view", view)
