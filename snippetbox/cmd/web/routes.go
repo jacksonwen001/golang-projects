@@ -3,16 +3,17 @@ package main
 import (
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
 
 func (app *application) routes() http.Handler {
-	mux := http.NewServeMux()
+	router := httprouter.New()
 	fileServce := http.FileServer(http.Dir("./ui/static"))
 	// 注册路由
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet/view", app.view)
-	mux.HandleFunc("/snippet/create", app.create)
-	mux.Handle("/static", fileServce)
-	return alice.New(app.recoverPanic, app.logRequest, secureHeaders).Then(mux)
+	router.HandlerFunc(http.MethodGet, "/", app.home)
+	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.view)
+	router.HandlerFunc(http.MethodPost, "/snippet/create", app.create)
+	router.Handler(http.MethodGet, "/static/*filepath", fileServce)
+	return alice.New(app.recoverPanic, app.logRequest, secureHeaders).Then(router)
 }
