@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/alexedwards/scs/redisstore"
+	"github.com/alexedwards/scs/v2"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gomodule/redigo/redis"
 	"snippetbox.jackson.net/internal/models"
 )
 
@@ -14,10 +17,15 @@ type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
 	snippet  *models.SnippetModel
+	session  *scs.SessionManager
 }
 
 func main() {
 	db, err := openDB("root:root@/snippetbox?parseTime=true") // "root:root@tcp(localhost:3306)/snippetbox?parseTime=true"
+
+	pool := redisConfigure()
+	sessionManager := scs.New()
+	sessionManager.Store = redisstore.New(pool)
 
 	// 路由的作用
 
@@ -28,6 +36,7 @@ func main() {
 		errorLog: errLog,
 		infoLog:  infoLog,
 		snippet:  &models.SnippetModel{DB: db},
+		session:  sessionManager,
 	}
 
 	// 启动服务器
@@ -59,4 +68,14 @@ func openDB(s string) (*sql.DB, error) {
 		return nil, err
 	}
 	return db, nil
+}
+
+func redisConfigure() *redis.Pool {
+	pool := &redis.Pool{
+		MaxIdle: 10,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp", "localhost:6379")
+		},
+	}
+	return pool
 }

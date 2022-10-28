@@ -16,6 +16,8 @@ func (app *application) home(w http.ResponseWriter, req *http.Request) {
 		http.NotFound(w, req)
 		return 
 	}
+
+	app.session.Put(req.Context(), "message", "Hello")
 	snippets, err := app.snippet.Latest()
 	if err != nil {
 		app.serverError(w, err)
