@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
+
+	"snippetbox.jackson.net/internal/models"
 )
 
 // 处理函数，用于接收请求和发送结果的函数
@@ -13,16 +15,24 @@ func (app *application) home(w http.ResponseWriter, req *http.Request) {
 		http.NotFound(w, req)
 		return 
 	}
-	files := []string {"./ui/html/base.tmpl", "./ui/html/partials/nav.tmpl", "./ui/html/pages/home.tmpl"}
-	ts, err := template.ParseFiles(files...)
+	snippets, err := app.snippet.Latest()
 	if err != nil {
 		app.serverError(w, err)
 	}
 
-	err = ts.ExecuteTemplate(w, "base", nil)
-	if err != nil {
-		app.serverError(w, err)
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v", snippet)
 	}
+	// files := []string {"./ui/html/base.tmpl", "./ui/html/partials/nav.tmpl", "./ui/html/pages/home.tmpl"}
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// }
+
+	// err = ts.ExecuteTemplate(w, "base", nil)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// }
 }
 
 func (app *application) view(w http.ResponseWriter, r *http.Request) {
@@ -31,8 +41,18 @@ func (app *application) view(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
-	// w.Write([]byte("view"))
-	fmt.Fprintf(w, "view %d....\n", id)
+	snippet, err := app.snippet.Get(id)
+	if err == nil {
+		fmt.Fprintf(w, "%+v", snippet)
+		return 
+	} 
+
+	if errors.Is(err, models.ErrNoRecord) {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	} else {
+		app.serverError(w, err)
+	}
+
 }
 
 func (app *application) create(w http.ResponseWriter, r *http.Request) {

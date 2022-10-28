@@ -9,7 +9,7 @@ import (
 type Snippet struct {
 	ID      int
 	Title   string
-	Content string
+	Content sql.NullString   // 如果是 null ，会直接报错，解决方法是使用 sql.NullString 做类型
 	Created time.Time
 	Expires time.Time
 }
@@ -49,5 +49,26 @@ func (m *SnippetModel) Insert(title string, content string, expires int) (int, e
 }
 
 func (m *SnippetModel) Latest() ([]*Snippet, error) {
-	return nil, nil
+	rows, err := m.DB.Query("SELECT id, title, content, created, expires FROM snippets")
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	snippets := []*Snippet{}
+	for rows.Next() {
+		s := &Snippet{}
+		err := rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+		if err != nil {
+			return nil, err
+		}
+		snippets = append(snippets, s)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return snippets, nil
 }
