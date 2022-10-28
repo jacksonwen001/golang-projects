@@ -1,8 +1,12 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
 
-func (app *application) routes() *http.ServeMux {
+	"github.com/justinas/alice"
+)
+
+func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 	fileServce := http.FileServer(http.Dir("./ui/static"))
 	// 注册路由
@@ -10,5 +14,5 @@ func (app *application) routes() *http.ServeMux {
 	mux.HandleFunc("/snippet/view", app.view)
 	mux.HandleFunc("/snippet/create", app.create)
 	mux.Handle("/static", fileServce)
-	return mux
+	return alice.New(app.recoverPanic, app.logRequest, secureHeaders).Then(mux)
 }
